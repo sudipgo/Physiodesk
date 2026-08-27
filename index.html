@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PhysioDesk</title>
+<meta name="theme-color" content="#10222B">
+<meta name="description" content="Daily visit, treatment plan and billing manager for physiotherapists.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PhysioDesk">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Inter+Tight:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#10222B;
+  --ink-2:#2C4450;
+  --paper:#EEF3F2;
+  --surface:#FFFFFF;
+  --line:#D8E2E0;
+  --line-2:#E9EFEE;
+  --teal:#00807A;
+  --teal-deep:#00605C;
+  --teal-soft:#E2F1EF;
+  --rose:#D8395F;
+  --rose-soft:#FBE7EC;
+  --amber:#C77A12;
+  --amber-soft:#FBEEDC;
+  --muted:#6E858C;
+  --r:10px;
+  --r-s:6px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Inter Tight',system-ui,sans-serif;
+  font-size:14px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:'Bricolage Grotesque',system-ui,sans-serif;margin:0;letter-spacing:-.02em;font-weight:700}
+.num{font-family:'DM Mono',ui-monospace,monospace;font-feature-settings:"tnum"}
+button{font-family:inherit;font-size:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:inherit}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px;border-radius:3px}
+
+/* ---------- shell ---------- */
+.app{display:grid;grid-template-columns:236px 1fr;min-height:100vh}
+.rail{
+  background:var(--ink);color:#CFDEDC;padding:22px 16px;
+  display:flex;flex-direction:column;gap:26px;position:sticky;top:0;height:100vh;
+}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-mark{display:flex;gap:2px;align-items:flex-end;height:22px}
+.brand-mark i{display:block;width:3px;background:var(--teal);border-radius:1px}
+.brand-mark i:nth-child(1){height:9px}
+.brand-mark i:nth-child(2){height:15px}
+.brand-mark i:nth-child(3){height:22px}
+.brand-mark i:nth-child(4){height:13px;background:#4FB3AC}
+.brand h1{font-size:17px;color:#fff;font-weight:800}
+.brand span{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#6E9B97;font-family:'DM Mono',monospace}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  background:none;border:0;color:#A9C2C0;text-align:left;
+  padding:10px 12px;border-radius:var(--r-s);width:100%;
+}
+.nav button:hover{background:#1C333D;color:#fff}
+.nav button.on{background:var(--teal);color:#fff;font-weight:600}
+.nav .pill{font-family:'DM Mono',monospace;font-size:11px;background:#1C333D;padding:1px 6px;border-radius:20px;color:#8FB3B0}
+.nav button.on .pill{background:rgba(255,255,255,.22);color:#fff}
+.rail-foot{margin-top:auto;border-top:1px solid #23404A;padding-top:16px}
+.rail-foot p{margin:0;font-size:13px;color:#fff;font-weight:500}
+.rail-foot small{color:#6E9B97;font-size:11px;font-family:'DM Mono',monospace}
+
+.main{min-width:0;padding:26px 30px 60px}
+.topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.eyebrow{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin:0 0 4px}
+.topbar h2{font-size:27px}
+.view{display:none}
+.view.on{display:block}
+
+/* ---------- bits ---------- */
+.btn{
+  border:1px solid var(--ink);background:var(--ink);color:#fff;
+  padding:8px 14px;border-radius:var(--r-s);font-weight:500;
+  display:inline-flex;align-items:center;gap:7px;
+}
+.btn:hover{background:#20404C;border-color:#20404C}
+.btn.teal{background:var(--teal);border-color:var(--teal)}
+.btn.teal:hover{background:var(--teal-deep);border-color:var(--teal-deep)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn.ghost:hover{background:#fff;border-color:var(--ink-2)}
+.btn.sm{padding:5px 10px;font-size:12.5px}
+.btn.danger{background:transparent;color:var(--rose);border-color:#EFC7D1}
+.btn.danger:hover{background:var(--rose-soft)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.pad{padding:18px}
+.row{display:flex;align-items:center;gap:10px}
+.between{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.grow{flex:1;min-width:0}
+.muted{color:var(--muted)}
+.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tag{
+  display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;
+  background:var(--teal-soft);color:var(--teal-deep);font-weight:500;
+}
+.tag.rose{background:var(--rose-soft);color:var(--rose)}
+.tag.amber{background:var(--amber-soft);color:var(--amber)}
+.tag.grey{background:#EAF0EF;color:var(--muted)}
+.sectitle{font-size:11px;font-family:'DM Mono',monospace;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+
+/* ---------- tally strip (signature) ---------- */
+.tally{display:flex;align-items:flex-end;gap:3px;height:26px}
+.tally b{display:block;width:5px;height:16px;border-radius:1.5px;background:var(--teal)}
+.tally b.unpaid{background:transparent;border:1.5px solid var(--teal);height:16px}
+.tally b.due{background:transparent;border:1.5px solid var(--rose)}
+.tally b.next{background:transparent;border:1.5px dashed #A9BCBA;height:11px}
+.tally b.missed{background:#DCE5E4;height:7px}
+.tally-lg b{width:7px;height:24px}
+.tally-lg b.next{height:16px}
+.tally-lg b.missed{height:10px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);font-family:'DM Mono',monospace}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:5px;height:14px;border-radius:1.5px;display:block}
+
+/* ---------- stats ---------- */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:15px 16px}
+.stat .k{font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.stat .v{font-family:'DM Mono',monospace;font-size:26px;font-weight:500;margin-top:5px;letter-spacing:-.02em}
+.stat .v.rose{color:var(--rose)}
+.stat .v.teal{color:var(--teal)}
+.stat .s{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* ---------- visit rows ---------- */
+.list{display:flex;flex-direction:column;gap:10px}
+.visitrow{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.visitrow .time{font-family:'DM Mono',monospace;font-size:15px;min-width:64px;color:var(--ink)}
+.visitrow .time small{display:block;font-size:10.5px;color:var(--muted)}
+.visitrow.done{background:#F7FAF9}
+.pname{font-weight:600;font-size:15px;font-family:'Bricolage Grotesque',sans-serif;letter-spacing:-.01em}
+.pname:hover{text-decoration:underline;cursor:pointer}
+.cond{font-size:12.5px;color:var(--muted)}
+.amt{font-family:'DM Mono',monospace;font-size:15px;text-align:right}
+.amt small{display:block;font-size:10.5px;color:var(--muted);font-family:'DM Mono',monospace}
+
+/* ---------- patient cards ---------- */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.pcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;cursor:pointer;transition:border-color .15s,transform .15s}
+.pcard:hover{border-color:var(--ink-2);transform:translateY(-1px)}
+.pcard .top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.pcard .meta{font-family:'DM Mono',monospace;font-size:11.5px;color:var(--muted);margin-top:2px}
+.pcard hr{border:0;border-top:1px solid var(--line-2);margin:13px 0}
+
+/* ---------- search ---------- */
+.search{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.search input{flex:1;min-width:190px;padding:9px 12px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface);color:var(--ink)}
+.search input::placeholder{color:#9AAFAD}
+.search select{padding:9px 12px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface);color:var(--ink)}
+
+/* ---------- patient detail ---------- */
+.phead{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;margin-bottom:14px}
+.phead h2{font-size:24px}
+.facts{display:flex;gap:26px;flex-wrap:wrap;margin-top:14px}
+.fact .k{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.fact .v{font-size:14px;margin-top:1px}
+.fact .v.mono{font-family:'DM Mono',monospace}
+.typenote{margin-top:16px;padding:12px 14px;background:#F7FAF9;border:1px solid var(--line);border-radius:var(--r-s);
+  font-size:13.5px;color:var(--ink-2);white-space:pre-wrap;line-height:1.55}
+.typenote .k{display:block;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.tabs button{background:none;border:0;padding:9px 14px;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;font-weight:500}
+.tabs button:hover{color:var(--ink)}
+.tabs button.on{color:var(--ink);border-bottom-color:var(--teal)}
+.tabview{display:none}
+.tabview.on{display:block}
+
+/* ---------- exercises ---------- */
+.ex{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:flex;gap:14px;align-items:flex-start}
+.ex.off{opacity:.55}
+.ex .idx{font-family:'DM Mono',monospace;color:var(--teal);font-size:13px;padding-top:1px}
+.ex h4{font-size:15px}
+.dose{font-family:'DM Mono',monospace;font-size:12.5px;color:var(--ink-2);margin-top:3px}
+.ex p{margin:6px 0 0;font-size:13px;color:var(--muted)}
+
+/* ---------- visit history ---------- */
+.vlog{position:relative;padding-left:22px}
+.vlog:before{content:"";position:absolute;left:5px;top:8px;bottom:8px;width:1px;background:var(--line)}
+.ventry{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:10px}
+.ventry:before{content:"";position:absolute;left:-21px;top:22px;width:9px;height:9px;border-radius:50%;background:var(--teal);border:2px solid var(--paper)}
+.ventry.miss:before{background:#B9C7C5}
+.vmeta{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.vmeta .sess{font-family:'DM Mono',monospace;font-size:12px;color:var(--teal);letter-spacing:.05em}
+.vmeta .date{font-weight:600;font-family:'Bricolage Grotesque',sans-serif;font-size:15px}
+.notes{margin:10px 0 0;font-size:13.5px;color:var(--ink-2);white-space:pre-wrap}
+.charge{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+.charge div{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:12.5px;color:var(--muted);padding:1.5px 0}
+.charge div.tot{color:var(--ink);font-weight:500;border-top:1px solid var(--line-2);margin-top:5px;padding-top:6px}
+.pain{display:inline-flex;align-items:center;gap:5px;font-family:'DM Mono',monospace;font-size:11.5px;color:var(--muted)}
+.painbar{display:flex;gap:1.5px}
+.painbar i{width:4px;height:10px;background:#E1E9E8;border-radius:1px;display:block}
+.painbar i.f{background:var(--rose)}
+
+/* ---------- tables ---------- */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);font-weight:400;padding:10px 14px;border-bottom:1px solid var(--line)}
+td{padding:13px 14px;border-bottom:1px solid var(--line-2);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+td.r,th.r{text-align:right}
+.money{font-family:'DM Mono',monospace}
+.money.due{color:var(--rose)}
+.money.ok{color:var(--teal)}
+
+/* ---------- bill summary ---------- */
+.billsum{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--surface);margin-bottom:14px}
+.billsum > div{padding:16px 18px;border-right:1px solid var(--line)}
+.billsum > div:last-child{border-right:0}
+.billsum .k{font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted)}
+.billsum .v{font-family:'DM Mono',monospace;font-size:24px;margin-top:4px}
+
+.note{border:1px solid var(--line);border-left:3px solid var(--teal);background:#F7FAF9;
+  border-radius:var(--r-s);padding:11px 14px;font-size:13px;color:var(--ink-2);margin:-6px 0 18px}
+.note.warn{border-left-color:var(--amber);background:var(--amber-soft);color:#7A4C08}
+.empty{border:1px dashed var(--line);border-radius:var(--r);padding:34px 20px;text-align:center;color:var(--muted);background:rgba(255,255,255,.5)}
+.empty strong{display:block;color:var(--ink);font-family:'Bricolage Grotesque',sans-serif;margin-bottom:4px;font-size:15px}
+
+/* ---------- modal ---------- */
+.scrim{position:fixed;inset:0;background:rgba(16,34,43,.44);display:none;align-items:flex-start;justify-content:center;padding:5vh 16px;overflow-y:auto;z-index:50}
+.scrim.on{display:flex}
+.modal{background:var(--surface);border-radius:12px;width:100%;max-width:540px;border:1px solid var(--line)}
+.modal header{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:12px}
+.modal header h3{font-size:18px}
+.modal header p{margin:2px 0 0;font-size:12.5px;color:var(--muted)}
+.x{background:none;border:0;font-size:20px;color:var(--muted);line-height:1;padding:4px 8px;border-radius:var(--r-s)}
+.x:hover{background:var(--paper);color:var(--ink)}
+.mbody{padding:20px;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.mfoot{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;background:#FAFCFB;border-radius:0 0 12px 12px}
+.f{display:flex;flex-direction:column;gap:5px}
+.f.full{grid-column:1 / -1}
+.f label{font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.f input,.f select,.f textarea{padding:9px 11px;border:1px solid var(--line);border-radius:var(--r-s);background:#fff;color:var(--ink);width:100%}
+.f textarea{min-height:88px;resize:vertical;line-height:1.55}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--teal);outline:none;box-shadow:0 0 0 3px var(--teal-soft)}
+.f .hint{font-size:11.5px;color:var(--muted)}
+
+/* ---------- searchable dropdown ---------- */
+.combo{position:relative}
+.combo .cbin{padding:9px 30px 9px 11px;border:1px solid var(--line);border-radius:var(--r-s);background:#fff;color:var(--ink);width:100%;cursor:text}
+.combo:after{content:"";position:absolute;right:12px;top:16px;width:6px;height:6px;border-right:1.5px solid var(--muted);
+  border-bottom:1.5px solid var(--muted);transform:rotate(45deg);pointer-events:none}
+.combo .cbin:focus{border-color:var(--teal);outline:none;box-shadow:0 0 0 3px var(--teal-soft)}
+.cblist{display:none;position:absolute;z-index:5;top:calc(100% + 4px);left:0;right:0;max-height:196px;overflow-y:auto;
+  background:#fff;border:1px solid var(--line);border-radius:var(--r-s);box-shadow:0 8px 22px rgba(16,34,43,.13);padding:4px}
+.combo.open .cblist{display:block}
+.cbopt{display:block;width:100%;text-align:left;background:none;border:0;padding:8px 10px;border-radius:4px;color:var(--ink)}
+.cbopt:hover,.cbopt.hi{background:var(--teal-soft)}
+.cbopt.on{font-weight:600;color:var(--teal-deep)}
+.cbopt.on:after{content:" ✓";color:var(--teal)}
+.cbnone{padding:9px 10px;color:var(--muted);font-size:12.5px}
+.minisearch{padding:7px 11px;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface);color:var(--ink);min-width:210px}
+.minisearch::placeholder{color:#9AAFAD}
+.nores{padding:22px;text-align:center;color:var(--muted)}
+.extras{grid-column:1/-1;border:1px dashed var(--line);border-radius:var(--r-s);padding:12px}
+.planbox{grid-column:1/-1;background:#F7FAF9;border:1px solid var(--line);border-left:3px solid var(--teal);
+  border-radius:var(--r-s);padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.planbox .hint{margin-top:1px}
+.planbox .plansplit{border-top:1px solid var(--line);padding-top:12px;margin-top:2px;gap:3px}
+.exrow{display:grid;grid-template-columns:1fr 110px 32px;gap:8px;margin-bottom:8px}
+.exrow input{padding:7px 10px;border:1px solid var(--line);border-radius:var(--r-s);width:100%}
+.exdel{background:none;border:1px solid var(--line);border-radius:var(--r-s);color:var(--muted)}
+.exdel:hover{border-color:var(--rose);color:var(--rose)}
+
+.offline{position:fixed;left:0;right:0;bottom:0;background:var(--amber-soft);color:#7A4C08;
+  padding:9px 16px;font-size:12.5px;text-align:center;z-index:60;display:none;border-top:1px solid #E8CFA4}
+.offline.on{display:block}
+@media (max-width:860px){.offline{bottom:56px}}
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(10px);
+  background:var(--ink);color:#fff;padding:10px 18px;border-radius:22px;font-size:13.5px;
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;z-index:99;
+}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (max-width:860px){
+  .app{grid-template-columns:1fr}
+  .rail{position:fixed;bottom:0;left:0;right:0;top:auto;height:auto;flex-direction:row;
+    align-items:center;gap:6px;padding:8px;z-index:40;border-top:1px solid #23404A}
+  .brand,.rail-foot{display:none}
+  .nav{flex-direction:row;width:100%;gap:4px}
+  .nav button{justify-content:center;padding:9px 6px;font-size:13px}
+  .nav .pill{display:none}
+  .main{padding:18px 14px 86px}
+  .stats,.billsum{grid-template-columns:1fr}
+  .billsum > div{border-right:0;border-bottom:1px solid var(--line)}
+  .mbody{grid-template-columns:1fr}
+  .topbar h2{font-size:22px}
+  .tabs{overflow-x:auto}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="rail">
+    <div class="brand">
+      <div class="brand-mark"><i></i><i></i><i></i><i></i></div>
+      <div><h1>PhysioDesk</h1><span>Visit manager</span></div>
+    </div>
+    <nav class="nav" id="nav">
+      <button data-v="today" class="on">Today <span class="pill" id="n-today">0</span></button>
+      <button data-v="patients">Patients <span class="pill" id="n-pat">0</span></button>
+      <button data-v="billing">Billing <span class="pill" id="n-bill">0</span></button>
+      <button data-v="settings">Backup &amp; sync <span class="pill" id="n-sync">·</span></button>
+    </nav>
+    <div class="rail-foot">
+      <p id="whoName">PhysioDesk</p>
+      <small id="saveState">Saved on this device</small>
+    </div>
+  </aside>
+
+  <main class="main">
+    <!-- ===== TODAY ===== -->
+    <section class="view on" id="v-today">
+      <div class="topbar">
+        <div><p class="eyebrow" id="todayDate">—</p><h2>Today's visits</h2></div>
+        <div class="row">
+          <button class="btn ghost" onclick="openPatientForm()">Add patient</button>
+          <button class="btn teal" onclick="openVisitForm()">Log a visit</button>
+        </div>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="k">Visits scheduled</div><div class="v" id="s-visits">0</div><div class="s" id="s-visits-sub">—</div></div>
+        <div class="stat"><div class="k">Collected today</div><div class="v teal" id="s-coll">₹0</div><div class="s" id="s-coll-sub">—</div></div>
+        <div class="stat"><div class="k">Outstanding</div><div class="v rose" id="s-due">₹0</div><div class="s" id="s-due-sub">—</div></div>
+      </div>
+      <p class="sectitle">Schedule</p>
+      <div class="list" id="todayList"></div>
+    </section>
+
+    <!-- ===== PATIENTS ===== -->
+    <section class="view" id="v-patients">
+      <div class="topbar">
+        <div><p class="eyebrow">Caseload</p><h2>Patients</h2></div>
+        <button class="btn teal" onclick="openPatientForm()">Add patient</button>
+      </div>
+      <div class="search">
+        <input id="q" placeholder="Search by name, mobile, condition or treatment" oninput="renderPatients()">
+        <div id="statusFilter" style="min-width:170px"></div>
+      </div>
+      <div class="pgrid" id="pGrid"></div>
+      <div style="margin-top:18px" class="legend">
+        <span><i style="background:var(--teal)"></i> Session paid</span>
+        <span><i style="border:1.5px solid var(--teal)"></i> Attended, unpaid</span>
+        <span><i style="border:1.5px dashed #A9BCBA;height:11px"></i> Scheduled</span>
+        <span><i style="background:#DCE5E4;height:7px"></i> Missed</span>
+      </div>
+    </section>
+
+    <!-- ===== PATIENT DETAIL ===== -->
+    <section class="view" id="v-patient">
+      <div class="topbar">
+        <button class="btn ghost sm" onclick="go('patients')">← All patients</button>
+      </div>
+      <div class="phead" id="pHead"></div>
+      <div class="tabs" id="pTabs">
+        <button data-t="plan" class="on">Treatment plan</button>
+        <button data-t="visits">Visit history</button>
+        <button data-t="bill">Billing</button>
+      </div>
+      <div class="tabview on" id="t-plan"></div>
+      <div class="tabview" id="t-visits"></div>
+      <div class="tabview" id="t-bill"></div>
+    </section>
+
+    <!-- ===== BILLING ===== -->
+    <section class="view" id="v-billing">
+      <div class="topbar">
+        <div><p class="eyebrow">Accounts</p><h2>Billing</h2></div>
+        <button class="btn teal" onclick="openPaymentForm()">Record payment</button>
+      </div>
+      <div class="billsum" id="billSum"></div>
+      <div class="search">
+        <input id="bq" placeholder="Search patient, condition or plan" oninput="filterRows('billTable',this.value)">
+      </div>
+      <div class="card">
+        <table id="billTable"></table>
+      </div>
+    </section>
+    <!-- ===== SETTINGS ===== -->
+    <section class="view" id="v-settings">
+      <div class="topbar">
+        <div><p class="eyebrow">Your data</p><h2>Backup &amp; sync</h2></div>
+      </div>
+      <div id="settingsBody"></div>
+    </section>
+  </main>
+</div>
+
+<div class="offline" id="offlineBar">Offline — changes are saved on this device and will sync when you reconnect.</div>
+<input type="file" id="importFile" accept="application/json" style="display:none">
+
+<div class="scrim" id="scrim" onclick="if(event.target===this)closeModal()">
+  <div class="modal" role="dialog" aria-modal="true">
+    <header>
+      <div><h3 id="mTitle">Title</h3><p id="mSub"></p></div>
+      <button class="x" onclick="closeModal()" aria-label="Close">×</button>
+    </header>
+    <div class="mbody" id="mBody"></div>
+    <div class="mfoot" id="mFoot"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ helpers ============ */
+const $ = s => document.querySelector(s);
+const uid = () => Math.random().toString(36).slice(2,9);
+const money = n => '₹' + Number(n||0).toLocaleString('en-IN');
+const D = off => { const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+off); return d.toISOString().slice(0,10); };
+const TODAY = D(0);
+const fmt = iso => new Date(iso+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+const fmtShort = iso => new Date(iso+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+const esc = s => String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),2200); }
+
+/* ============ data ============ */
+function emptyDB(){ return {patients:[],exercises:[],visits:[],payments:[]}; }
+var db = emptyDB();   // var so it is reachable for debugging in the console
+
+function sampleData(){
+const db = {
+  patients:[
+    {id:'p1',name:'Meera Nair',mobile:'98201 44571',address:'B-402 Sailash Apts, Andheri West',condition:'Adhesive capsulitis — right shoulder',type:'Manual therapy with grade III glenohumeral mobilisation, progressive range-of-motion loading and a twice-daily home programme. Avoid end-range abduction under resistance while symptoms flare.',fee:600,start:D(-26),status:'Active',bill:{mode:'cycle',cycleDays:7}},
+    {id:'p2',name:'Rakesh Deshmukh',mobile:'99876 20114',address:'12 Sunder Nagar, Vile Parle East',condition:'Post-op TKR — left knee, week 3',type:'Post-surgical knee protocol — swelling control, quadriceps reactivation, graded flexion targets (95° by week 5) and walker-assisted gait. Weight-bear as tolerated.',fee:800,start:D(-19),status:'Active',bill:{mode:'cycle',cycleDays:3}},
+    {id:'p3',name:'Anita Verma',mobile:'97690 33812',address:'7B Rose Villa, Santacruz West',condition:'L4–L5 disc bulge, low back pain',type:'Core stabilisation with McKenzie extension bias, plus 15 minutes IFT each session. Monitor for any radiating symptoms below the knee.',fee:550,start:D(-12),status:'Active',bill:{mode:'per-visit'}},
+    {id:'p4',name:"Joseph D'Souza",mobile:'98334 77029',address:'Casa Bella, Bandra Reclamation',condition:'CVA — left hemiparesis',type:'Neuro rehab — trunk control, left grip strengthening and parallel-bar gait work. Foot drop on the left; AFO fitting recommended. One-person assist at all times.',fee:0,start:D(-40),status:'Active',bill:{mode:'package',packageSessions:10,packagePrice:8500}},
+    {id:'p5',name:'Sana Qureshi',mobile:'90045 61228',address:'304 Green Court, Jogeshwari',condition:'Cervical spondylosis',type:'Intermittent cervical traction with postural re-education and desk setup advice. Discharged with a home programme.',fee:600,start:D(-55),status:'Discharged',bill:{mode:'cycle',cycleDays:15}}
+  ],
+  exercises:[
+    {id:'e1',pid:'p1',name:'Pendulum swings',sets:3,reps:15,hold:0,freq:'Twice daily',note:'Lean forward, let the arm hang loose. No shrugging.',active:true},
+    {id:'e2',pid:'p1',name:'Wall crawl — flexion',sets:3,reps:10,hold:5,freq:'Twice daily',active:true},
+    {id:'e3',pid:'p1',name:'Towel stretch behind back',sets:2,reps:8,hold:20,freq:'Once daily',note:'Stop at stretch, not pain.',active:true},
+    {id:'e4',pid:'p1',name:'Isometric external rotation',sets:3,reps:10,hold:6,freq:'Once daily',note:'Paused — flaring up since last week.',active:false},
+    {id:'e5',pid:'p2',name:'Static quadriceps',sets:3,reps:12,hold:8,freq:'Three times daily',active:true},
+    {id:'e6',pid:'p2',name:'Heel slides',sets:3,reps:15,hold:0,freq:'Twice daily',note:'Target 95° knee flexion by week 5.',active:true},
+    {id:'e7',pid:'p2',name:'Seated knee extension',sets:3,reps:12,hold:3,freq:'Twice daily',active:true},
+    {id:'e8',pid:'p2',name:'Assisted standing, walker',sets:4,reps:1,hold:60,freq:'Every session',note:'Weight-bear as tolerated.',active:true},
+    {id:'e9',pid:'p3',name:'Cat–camel',sets:2,reps:12,hold:0,freq:'Twice daily',active:true},
+    {id:'e10',pid:'p3',name:'Dead bug',sets:3,reps:10,hold:0,freq:'Once daily',note:'Keep the lower back flat throughout.',active:true},
+    {id:'e11',pid:'p3',name:'Glute bridge',sets:3,reps:12,hold:5,freq:'Once daily',active:true},
+    {id:'e12',pid:'p4',name:'Sit-to-stand, arm support',sets:3,reps:8,hold:0,freq:'Twice daily',note:'Supervise. Chair against the wall.',active:true},
+    {id:'e13',pid:'p4',name:'Left hand grip squeeze',sets:4,reps:15,hold:4,freq:'Three times daily',active:true},
+    {id:'e14',pid:'p4',name:'Parallel bar gait, 10m',sets:4,reps:1,hold:0,freq:'Every session',note:'Watch for foot drop on the left.',active:true}
+  ],
+  visits:[],
+  payments:[
+    {id:'y1',pid:'p1',date:D(-19),amount:2400,mode:'UPI'},
+    {id:'y2',pid:'p1',date:D(-6),amount:1800,mode:'Cash'},
+    {id:'y3',pid:'p2',date:D(-12),amount:4000,mode:'Bank transfer'},
+    {id:'y4',pid:'p3',date:D(-5),amount:1100,mode:'UPI'},
+    {id:'y5',pid:'p4',date:D(-14),amount:9000,mode:'Bank transfer'},
+    {id:'y6',pid:'p4',date:D(-2),amount:500,mode:'UPI'},
+    {id:'y7',pid:'p5',date:D(-30),amount:3540,mode:'Cash'}
+  ]
+};
+
+/* seed visits */
+(function seed(){
+  const notes = {
+    p1:['Shoulder abduction 92° from 78°. End-range still guarded.','Mobilised GH joint, grade III. Reported easier reaching overhead.','Sleep disturbance reduced — two wakings instead of five.','Abduction 105°. Started resisted external rotation.','Mild flare after housework. Backed off resistance today.'],
+    p2:['Knee flexion 74°. Swelling down, girth 41cm.','Walked 20m with walker, no knee giving way.','Flexion 82°. Quad lag still present on straight-leg raise.','Stair practice — two steps up with rail. Confident.','Flexion 88°. Discharged the walker for indoor use.'],
+    p3:['Pain on forward flexion, VAS 6. Started McKenzie extensions.','IFT 15 min. Sitting tolerance up to 30 min.','No radiating pain into the calf this week. Good sign.','Core endurance improving — plank hold 35s.'],
+    p4:['Sat unsupported 4 min. Trunk control improving.','Gait 12m with quad stick, moderate assistance.','Grip strength left 9kg from 6kg.','Walked to the balcony and back with one-person assist.','Foot drop persists — recommended AFO fitting.','Stood from the sofa without hand support. First time.'],
+    p5:['Neck rotation full range. Headaches resolved.','Discharged with a home programme. Review in 6 weeks.']
+  };
+  const plan = [
+    {pid:'p1',days:[-26,-22,-19,-15,-12,-8,-5,-1],future:[0,3]},
+    {pid:'p2',days:[-19,-16,-13,-10,-7,-4,-2],future:[0,2]},
+    {pid:'p3',days:[-12,-9,-6,-3],future:[0,4]},
+    {pid:'p4',days:[-40,-35,-30,-25,-21,-17,-14,-10,-7,-5,-3,-1],future:[1]},
+    {pid:'p5',days:[-55,-50,-45,-40,-35],future:[]}
+  ];
+  const times=['08:00','09:30','11:00','16:00','17:30','19:00'];
+  const extrasPool={p1:[{label:'Ultrasound therapy',amount:150}],p2:[{label:'Cryotherapy pack',amount:100},{label:'Home visit travel',amount:150}],p3:[{label:'IFT session',amount:120}],p4:[{label:'Home visit travel',amount:200}],p5:[{label:'Cervical traction',amount:180}]};
+  plan.forEach(pl=>{
+    const p = db.patients.find(x=>x.id===pl.pid);
+    let n=0;
+    pl.days.forEach((off,i)=>{
+      n++;
+      const missed = (pl.pid==='p3' && off===-9);
+      db.visits.push({
+        id:uid(),pid:pl.pid,date:D(off),time:times[i%times.length],session:n,
+        status: missed?'Missed':'Completed',
+        pain: Math.max(1, 7 - Math.floor(i*0.7)),
+        note: missed ? 'Patient unwell, visit cancelled at the door.' : (notes[pl.pid][i%notes[pl.pid].length]),
+        fee: missed?0:p.fee,
+        extras: (missed || i%2) ? [] : (extrasPool[pl.pid]||[])
+      });
+    });
+    pl.future.forEach((off,i)=>{
+      n++;
+      db.visits.push({id:uid(),pid:pl.pid,date:D(off),time:times[(pl.days.length+i)%times.length],session:n,status:'Scheduled',pain:null,note:'',fee:p.fee,extras:[]});
+    });
+  });
+})();
+  return db;
+}
+
+/* ============ derived ============ */
+const P = id => db.patients.find(p=>p.id===id);
+const visitTotal = v => v.status==='Missed' ? 0 : Number(v.fee||0) + (v.extras||[]).reduce((s,e)=>s+Number(e.amount||0),0);
+const extrasTotal = v => (v.extras||[]).reduce((s,e)=>s+Number(e.amount||0),0);
+const visitsOf = id => db.visits.filter(v=>v.pid===id).sort((a,b)=> a.date<b.date?-1:a.date>b.date?1:0);
+const paid = id => db.payments.filter(y=>y.pid===id).reduce((s,y)=>s+Number(y.amount),0);
+const addDays = (iso,n) => { const d=new Date(iso+'T00:00:00'); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); };
+
+/* how a patient's plan reads in one line */
+function planLabel(p){
+  const b=p.bill||{mode:'per-visit'};
+  if(b.mode==='per-visit') return 'Pays each visit';
+  if(b.mode==='cycle') return `Bills every ${b.cycleDays} days`;
+  return `Package of ${b.packageSessions} sessions`;
+}
+function planShort(p){
+  const b=p.bill||{mode:'per-visit'};
+  if(b.mode==='per-visit') return 'Per visit';
+  if(b.mode==='cycle') return `${b.cycleDays}-day cycle`;
+  return `Package × ${b.packageSessions}`;
+}
+const perSession = p => p.bill.mode==='package'
+  ? Math.round((p.bill.packagePrice||0)/Math.max(1,p.bill.packageSessions||1))
+  : p.fee;
+
+/*
+  bills(pid) — the heart of the billing model.
+  Every patient's completed visits get grouped into bills according to their plan:
+    per-visit → one bill per visit, due the same day
+    cycle     → one bill per N-day window, due when the window closes
+    package   → one bill per block of N sessions, due when the block opens
+  Payments are then allocated oldest bill first.
+*/
+function bills(pid){
+  const p = P(pid); if(!p) return [];
+  const b = p.bill || {mode:'per-visit'};
+  const vs = visitsOf(pid).filter(v=>v.status==='Completed');
+  let out = [];
+
+  if(b.mode==='per-visit'){
+    out = vs.map(v=>({
+      key:v.id, label:`Session ${String(v.session).padStart(2,'0')}`, sub:fmt(v.date),
+      from:v.date, to:v.date, due:v.date, sessions:1, amount:visitTotal(v), open:false
+    }));
+  }
+  else if(b.mode==='cycle'){
+    const N = Math.max(1, b.cycleDays||7);
+    const last = vs.length ? vs[vs.length-1].date : TODAY;
+    const stop = last > TODAY ? last : TODAY;
+    let s = p.start, guard = 0;
+    while(s <= stop && guard++ < 400){
+      const e = addDays(s, N-1);
+      const win = vs.filter(v=>v.date>=s && v.date<=e);
+      if(win.length) out.push({
+        key:'c'+s, label:`${fmtShort(s)} – ${fmtShort(e)}`, sub:`${N}-day cycle · ${win.length} session${win.length>1?'s':''}`,
+        from:s, to:e, due:e, sessions:win.length,
+        amount:win.reduce((a,v)=>a+visitTotal(v),0), open: e >= TODAY
+      });
+      s = addDays(e,1);
+    }
+  }
+  else {
+    const N = Math.max(1, b.packageSessions||10);
+    const blocks = Math.max(1, Math.ceil(vs.length/N));
+    for(let i=0;i<blocks;i++){
+      const blk = vs.slice(i*N, i*N+N);
+      if(!blk.length) break;
+      const ex = blk.reduce((a,v)=>a+extrasTotal(v),0);
+      const full = blk.length >= N;
+      out.push({
+        key:'pk'+i, label:`Package ${i+1}`,
+        sub:`${blk.length} of ${N} sessions${ex?` · ${money(ex)} extras`:''}`,
+        from:blk[0].date, to:blk[blk.length-1].date,
+        due: full ? blk[blk.length-1].date : null,
+        sessions:blk.length, amount:(b.packagePrice||0)+ex,
+        open: !full, left:N-blk.length
+      });
+    }
+  }
+
+  let pool = paid(pid);
+  out.forEach(bl=>{
+    const a = Math.min(pool, bl.amount); bl.paid = a; pool -= a;
+    bl.status = a>=bl.amount && bl.amount>0 ? 'Paid'
+      : bl.open ? 'Running'
+      : a>0 ? 'Part paid'
+      : (bl.due && bl.due < TODAY) ? 'Overdue' : 'Due';
+  });
+  out.advance = pool;
+  return out;
+}
+
+const billed   = id => bills(id).reduce((s,b)=>s+b.amount,0);
+const balance  = id => billed(id) - paid(id);
+/* collectable right now — running cycles are not yet askable */
+const dueNow   = id => bills(id).filter(b=>!b.open).reduce((s,b)=>s+Math.max(0,b.amount-b.paid),0);
+/* accruing inside an open cycle — will become due when it closes */
+const accruing = id => bills(id).filter(b=>b.open).reduce((s,b)=>s+Math.max(0,b.amount-b.paid),0);
+const nextDue  = id => { const b = bills(id).find(x=>x.open); return b ? b.due : null; };
+const totalDue = () => db.patients.reduce((s,p)=>s+dueNow(p.id),0);
+const totalAccruing = () => db.patients.reduce((s,p)=>s+accruing(p.id),0);
+/* nothing has been billed at all — no completed visits yet */
+const unstarted = id => bills(id).length === 0;
+/* money held over and above everything billed so far */
+const advance = id => Math.max(0, paid(id) - billed(id));
+
+/* which completed visits sit inside a fully-paid bill */
+function settledVisits(pid){
+  const p=P(pid), bl=bills(pid), set=new Set();
+  const vs=visitsOf(pid).filter(v=>v.status==='Completed');
+  const mode=(p.bill||{}).mode||'per-visit';
+  if(mode==='package'){
+    const N=Math.max(1,p.bill.packageSessions||10);
+    vs.forEach((v,i)=>{ const b=bl[Math.floor(i/N)]; if(b && b.paid>=b.amount) set.add(v.id); });
+  } else if(mode==='per-visit'){
+    bl.forEach(b=>{ if(b.paid>=b.amount) set.add(b.key); });
+  } else {
+    vs.forEach(v=>{ const b=bl.find(x=>v.date>=x.from && v.date<=x.to); if(b && b.paid>=b.amount) set.add(v.id); });
+  }
+  return set;
+}
+
+/* tally: one bar per session, coloured by whether its bill is settled */
+function tally(id, big){
+  const vs = visitsOf(id), settled = settledVisits(id);
+  const done = vs.filter(v=>v.status==='Completed').length;
+  const bars = vs.map(v=>{
+    if(v.status==='Missed') return 'missed';
+    if(v.status==='Scheduled') return 'next';
+    return settled.has(v.id) ? '' : 'unpaid';
+  });
+  return `<div class="tally ${big?'tally-lg':''}" title="${done} sessions done">${bars.map(c=>`<b class="${c}"></b>`).join('')}</div>`;
+}
+function painBar(n){
+  if(n==null) return '';
+  return `<span class="pain">Pain ${n}/10 <span class="painbar">${Array.from({length:10},(_,i)=>`<i class="${i<n?'f':''}"></i>`).join('')}</span></span>`;
+}
+
+/* ============ navigation ============ */
+let view='today', curId=null, tab='plan';
+function go(v,id){
+  view=v; if(id) curId=id;
+  document.querySelectorAll('.view').forEach(s=>s.classList.remove('on'));
+  $('#v-'+v).classList.add('on');
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on', b.dataset.v===v));
+  window.scrollTo(0,0);
+  renderAll();
+}
+$('#nav').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) go(b.dataset.v); });
+$('#pTabs').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  tab=b.dataset.t;
+  document.querySelectorAll('#pTabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('#v-patient .tabview').forEach(x=>x.classList.remove('on'));
+  $('#t-'+tab).classList.add('on');
+});
+const openPatient = id => { curId=id; tab='plan';
+  document.querySelectorAll('#pTabs button').forEach(x=>x.classList.toggle('on',x.dataset.t==='plan'));
+  document.querySelectorAll('#v-patient .tabview').forEach(x=>x.classList.remove('on'));
+  $('#t-plan').classList.add('on');
+  go('patient',id);
+};
+
+/* ============ render ============ */
+function renderAll(){
+  $('#n-today').textContent = db.visits.filter(v=>v.date===TODAY).length;
+  $('#n-pat').textContent = db.patients.filter(p=>p.status==='Active').length;
+  $('#n-bill').textContent = db.patients.filter(p=>balance(p.id)>0).length;
+  renderToday(); renderPatients(); renderBilling();
+  if(curId && P(curId)) renderPatient();
+  if(view==='settings') renderSettings();
+  autoSave();
+}
+
+function renderToday(){
+  $('#todayDate').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const tv = db.visits.filter(v=>v.date===TODAY).sort((a,b)=>a.time.localeCompare(b.time));
+  const doneCount = tv.filter(v=>v.status==='Completed').length;
+  const collectedToday = db.payments.filter(y=>y.date===TODAY).reduce((s,y)=>s+Number(y.amount),0);
+  $('#s-visits').textContent = tv.length;
+  $('#s-visits-sub').textContent = doneCount + ' completed, ' + (tv.length-doneCount) + ' to go';
+  $('#s-coll').textContent = money(collectedToday);
+  $('#s-coll-sub').textContent = db.payments.filter(y=>y.date===TODAY).length + ' payment(s) recorded';
+  $('#s-due').textContent = money(totalDue());
+  $('#s-due-sub').textContent = db.patients.filter(p=>dueNow(p.id)>0).length + ' patients · '
+    + money(totalAccruing()) + ' still accruing';
+
+  $('#todayList').innerHTML = tv.length ? tv.map(v=>{
+    const p = P(v.pid), due = dueNow(p.id), acc = accruing(p.id), nd = nextDue(p.id);
+    const mode = (p.bill||{}).mode||'per-visit';
+    let ask, note;
+    if(due>0){ ask = money(due); note = 'collect today'; }
+    else if(unstarted(p.id)){ ask = mode==='package'?money(p.bill.packagePrice):money(perSession(p)); note = 'first visit'; }
+    else if(mode==='package'){ const b=bills(p.id).slice(-1)[0];
+      if(b && b.left>0){ ask = money(acc); note = b.left+' sessions to go'; }
+      else { ask = 'New package'; note = 'starts this visit'; } }
+    else if(mode==='cycle' && nd){ ask = money(acc); note = 'bills ' + fmtShort(nd); }
+    else { ask = 'Settled'; note = planShort(p); }
+    return `<div class="visitrow ${v.status==='Completed'?'done':''}">
+      <div class="time">${v.time}<small>Session ${v.session}</small></div>
+      <div class="grow">
+        <div class="pname" onclick="openPatient('${p.id}')">${esc(p.name)}</div>
+        <div class="cond truncate">${esc(p.condition)}</div>
+      </div>
+      ${tally(p.id)}
+      <div class="amt ${due>0?'money due':''}">${ask}<small>${note}</small></div>
+      <div class="row">
+        ${v.status==='Scheduled'
+          ? `<button class="btn teal sm" onclick="openVisitForm('${v.id}')">Complete visit</button>`
+          : `<span class="tag">Completed</span>`}
+        <button class="btn ${due>0?'teal':'ghost'} sm" onclick="openPaymentForm('${p.id}')">Collect</button>
+      </div>
+    </div>`;
+  }).join('') : (db.patients.length?`<div class="empty"><strong>No visits booked today</strong>Log a visit to start the day's schedule.</div>`:`<div class="empty"><strong>Nothing here yet</strong>Add your first patient to get started, or load the sample data from Backup &amp; sync to look around.</div>`);
+}
+
+function renderPatients(){
+  const sf = $('#statusFilter');
+  if(sf && !sf.innerHTML){
+    sf.innerHTML = combo('qstatus','Status','',[
+      {v:'',l:'All statuses'},{v:'Active',l:'Active'},{v:'On hold',l:'On hold'},{v:'Discharged',l:'Discharged'}
+    ],{on:renderPatients,ph:'Search'});
+  }
+  const q = ($('#q')?.value||'').toLowerCase().trim();
+  const st = document.querySelector('[name="qstatus"]')?.value || '';
+  const list = db.patients.filter(p=>{
+    const hit = !q || (p.name+p.mobile+p.condition+p.address+p.type+planShort(p)).toLowerCase().includes(q);
+    return hit && (!st || p.status===st);
+  });
+  $('#pGrid').innerHTML = list.length ? list.map(p=>{
+    const bal = balance(p.id), done = visitsOf(p.id).filter(v=>v.status==='Completed').length;
+    return `<div class="pcard" onclick="openPatient('${p.id}')">
+      <div class="top">
+        <div class="grow">
+          <div class="pname truncate">${esc(p.name)}</div>
+          <div class="meta">${esc(p.mobile)}</div>
+        </div>
+        <span class="tag ${p.status==='Active'?'':'grey'}">${p.status}</span>
+      </div>
+      <div class="cond" style="margin-top:8px">${esc(p.condition)}</div>
+      <hr>
+      ${tally(p.id)}
+      <div class="between" style="margin-top:10px">
+        <span class="muted num" style="font-size:12px">${done} sessions · ${esc(planShort(p))}</span>
+        ${(()=>{const d=dueNow(p.id), a=accruing(p.id), adv=advance(p.id);
+          if(d>0) return `<span class="money due">${money(d)} due</span>`;
+          if(adv>0) return `<span class="money ok">${money(adv)} in credit</span>`;
+          if(unstarted(p.id)) return `<span class="muted" style="font-size:12.5px">Not billed yet</span>`;
+          if(a>0) return `<span class="muted" style="font-size:12.5px">Nothing due yet</span>`;
+          return `<span class="money ok">Settled</span>`;})()}
+      </div>
+      ${accruing(p.id)>0?`<div class="muted num" style="font-size:11.5px;margin-top:4px">${money(accruing(p.id))} accruing · ${nextDue(p.id)?'bills '+fmtShort(nextDue(p.id)):'bills on completion'}</div>`:''}
+    </div>`;
+  }).join('') : `<div class="empty" style="grid-column:1/-1"><strong>Nothing matches that search</strong>Try a different name, mobile number or condition.</div>`;
+}
+
+function renderPatient(){
+  const p = P(curId); if(!p) return;
+  const bal = balance(p.id), vs = visitsOf(p.id);
+  const done = vs.filter(v=>v.status==='Completed').length;
+
+  $('#pHead').innerHTML = `
+    <div class="between" style="align-items:flex-start">
+      <div>
+        <div class="row" style="gap:10px"><h2>${esc(p.name)}</h2><span class="tag ${p.status==='Active'?'':'grey'}">${p.status}</span></div>
+        <p class="cond" style="margin:4px 0 0">${esc(p.condition)}</p>
+      </div>
+      <div class="row">
+        <button class="btn ghost sm" onclick="openPatientForm('${p.id}')">Edit</button>
+        <button class="btn danger sm" onclick="delPatient('${p.id}')">Remove</button>
+      </div>
+    </div>
+    <div class="facts">
+      <div class="fact"><div class="k">Mobile</div><div class="v mono">${esc(p.mobile)}</div></div>
+      <div class="fact"><div class="k">Address</div><div class="v">${esc(p.address)}</div></div>
+      <div class="fact"><div class="k">${p.bill.mode==='package'?'Rate / session':'Fee / session'}</div><div class="v mono">${money(perSession(p))}${p.bill.mode==='package'?' <span class="cond">in package</span>':''}</div></div>
+      <div class="fact"><div class="k">Billing plan</div><div class="v">${esc(planLabel(p))}${p.bill.mode==='package'?` · ${money(p.bill.packagePrice)}`:''}</div></div>
+      ${(()=>{const nd=nextDue(p.id), l=bills(p.id).slice(-1)[0];
+        if(p.bill.mode==='package') return `<div class="fact"><div class="k">Sessions left</div><div class="v mono">${l?l.left:p.bill.packageSessions} of ${p.bill.packageSessions}</div></div>`;
+        return `<div class="fact"><div class="k">${nd?'Next bill closes':'Since'}</div><div class="v mono">${nd?fmt(nd):fmt(p.start)}</div></div>`;})()}
+      ${(()=>{const d=dueNow(p.id), a=accruing(p.id), adv=advance(p.id), fresh=unstarted(p.id);
+        const txt = d>0 ? money(d) : fresh ? (adv>0?'In credit':'Not billed yet') : a>0 ? 'Nothing due yet' : 'Settled';
+        const cls = d>0 ? 'money due' : (adv>0 || (!fresh && !a)) ? 'money ok' : '';
+        const sub = d>0 ? '' : adv>0 ? `<div class="cond">${money(adv)} in hand</div>`
+          : fresh ? `<div class="cond">no visits completed</div>`
+          : a>0 ? `<div class="cond">${money(a)} accruing</div>` : '';
+        return `<div class="fact"><div class="k">Due now</div><div class="v mono ${cls}">${txt}</div>${sub}</div>`;})()}
+    </div>
+    ${p.type?`<div class="typenote"><span class="k">Treatment approach</span>${esc(p.type)}</div>`:''}
+    <div style="margin-top:16px">
+      <div class="between" style="align-items:flex-end">
+        <div>${tally(p.id,true)}</div>
+        <span class="muted num" style="font-size:12px">${done} of ${vs.length} sessions done</span>
+      </div>
+    </div>`;
+
+  /* --- plan tab --- */
+  const ex = db.exercises.filter(e=>e.pid===p.id);
+  $('#t-plan').innerHTML = `
+    <div class="between" style="margin-bottom:12px">
+      <p class="sectitle" style="margin:0">Daily routine · ${ex.filter(e=>e.active).length} active</p>
+      <button class="btn teal sm" onclick="openExForm()">Add exercise</button>
+    </div>
+    <div class="list">${ex.length ? ex.map((e,i)=>`
+      <div class="ex ${e.active?'':'off'}">
+        <span class="idx">${String(i+1).padStart(2,'0')}</span>
+        <div class="grow">
+          <div class="between" style="align-items:flex-start">
+            <div class="grow">
+              <h4>${esc(e.name)} ${e.active?'':'<span class="tag grey">Paused</span>'}</h4>
+              <div class="dose">${e.sets} sets × ${e.reps} reps${e.hold?` · hold ${e.hold}s`:''} · ${esc(e.freq)}</div>
+              ${e.note?`<p>${esc(e.note)}</p>`:''}
+            </div>
+            <div class="row">
+              <button class="btn ghost sm" onclick="toggleEx('${e.id}')">${e.active?'Pause':'Resume'}</button>
+              <button class="btn ghost sm" onclick="openExForm('${e.id}')">Edit</button>
+              <button class="btn danger sm" onclick="delEx('${e.id}')">Remove</button>
+            </div>
+          </div>
+        </div>
+      </div>`).join('') : `<div class="empty"><strong>No exercises yet</strong>Add the first movement to build this patient's routine.</div>`}
+    </div>`;
+
+  /* --- visits tab --- */
+  const rev = [...vs].reverse();
+  $('#t-visits').innerHTML = `
+    <div class="between" style="margin-bottom:12px;flex-wrap:wrap;gap:10px">
+      <p class="sectitle" style="margin:0">Case study · ${vs.length} entries</p>
+      <div class="row">
+        <input class="minisearch" placeholder="Search notes, dates, session no." oninput="filterCards('vlog',this.value)">
+        <button class="btn teal sm" onclick="openVisitForm()">Add visit</button>
+      </div>
+    </div>
+    <div class="vlog" id="vlog">${rev.length ? rev.map(v=>`
+      <div class="ventry ${v.status!=='Completed'?'miss':''}" data-s="${esc((v.note+' '+fmt(v.date)+' s'+v.session+' session '+v.session+' '+v.status+' '+v.time).toLowerCase())}">
+        <div class="between" style="align-items:flex-start">
+          <div>
+            <div class="vmeta">
+              <span class="sess">S${String(v.session).padStart(2,'0')}</span>
+              <span class="date">${fmt(v.date)}</span>
+              <span class="muted num" style="font-size:12px">${v.time}</span>
+              ${v.status!=='Completed'?`<span class="tag ${v.status==='Missed'?'rose':'grey'}">${v.status}</span>`:''}
+            </div>
+            <div style="margin-top:5px">${painBar(v.pain)}</div>
+          </div>
+          <div class="row">
+            <button class="btn ghost sm" onclick="openVisitForm('${v.id}')">Edit</button>
+            <button class="btn danger sm" onclick="delVisit('${v.id}')">Remove</button>
+          </div>
+        </div>
+        ${v.note?`<p class="notes">${esc(v.note)}</p>`:'<p class="notes muted">No notes recorded.</p>'}
+        ${v.status==='Completed'?`<div class="charge">
+          <div><span>Session fee</span><span>${money(v.fee)}</span></div>
+          ${(v.extras||[]).map(x=>`<div><span>${esc(x.label)}</span><span>${money(x.amount)}</span></div>`).join('')}
+          <div class="tot"><span>Visit total</span><span>${money(visitTotal(v))}</span></div>
+        </div>`:''}
+      </div>`).join('') : `<div class="empty"><strong>No visits logged</strong>The case study builds up as you record each session.</div>`}
+      <div class="nores" id="vlog-none" style="display:none">No visits match that search.</div>
+    </div>`;
+
+  /* --- billing tab --- */
+  const y=paid(p.id), pays=db.payments.filter(x=>x.pid===p.id).sort((a,b2)=>b2.date.localeCompare(a.date));
+  const bl=bills(p.id), due=dueNow(p.id), acc=accruing(p.id), fresh=unstarted(p.id);
+  const tagFor = s => s==='Paid'?'tag':s==='Overdue'?'tag rose':s==='Part paid'?'tag amber':s==='Running'?'tag grey':'tag amber';
+  $('#t-bill').innerHTML = `
+    <div class="billsum">
+      <div><div class="k">Due now</div><div class="v" style="color:${due>0?'var(--rose)':acc>0||fresh?'var(--ink)':'var(--teal)'}">${fresh?'—':due>0?money(due):acc>0?'—':money(0)}</div><div class="s muted">${fresh?'no visits completed yet':due>0?'collectable today':acc>0?'nothing collectable yet':'account settled'}</div></div>
+      <div><div class="k">Accruing</div><div class="v">${money(acc)}</div><div class="s muted">${acc>0?(nextDue(p.id)?'bills on '+fmt(nextDue(p.id)):'bills when the block finishes'):fresh?'starts on the first visit':'no open period'}</div></div>
+      <div><div class="k">Collected</div><div class="v" style="color:var(--teal)">${money(y)}</div><div class="s muted">${advance(p.id)>0?money(advance(p.id))+' of it still unapplied':'of '+money(billed(p.id))+' billed'}</div></div>
+    </div>
+    <div class="between" style="margin-bottom:10px">
+      <p class="sectitle" style="margin:0">Bill periods · ${esc(planLabel(p))}</p>
+      <button class="btn ghost sm" onclick="openPatientForm('${p.id}')">Change plan</button>
+    </div>
+    <div class="card" style="margin-bottom:18px"><table>
+      <tr><th>Period</th><th>Sessions</th><th class="r">Amount</th><th class="r">Paid</th><th class="r">Status</th><th class="r"></th></tr>
+      ${[...bl].reverse().map(x=>`<tr>
+        <td><strong>${esc(x.label)}</strong><div class="cond">${esc(x.sub)}</div></td>
+        <td class="num">${x.sessions}</td>
+        <td class="r money">${money(x.amount)}</td>
+        <td class="r money ok">${x.paid?money(x.paid):'—'}</td>
+        <td class="r"><span class="${tagFor(x.status)}">${x.status}</span>${x.due?`<div class="cond num">due ${fmtShort(x.due)}</div>`:x.open?`<div class="cond">${x.left!=null?x.left+' sessions to go':'cycle open'}</div>`:''}</td>
+        <td class="r">${x.status==='Paid'?'':`<button class="btn ${x.open?'ghost':'teal'} sm" onclick="openPaymentForm('${p.id}',${x.amount-x.paid})">${x.open?'Settle early':'Collect'} ${money(x.amount-x.paid)}</button>`}</td>
+      </tr>`).join('')||'<tr><td colspan="6" class="muted">Nothing billed yet — bills appear once visits are completed.</td></tr>'}
+    </table></div>
+    ${(()=>{ const last=bl[bl.length-1];
+      if(p.bill.mode!=='package'||!last) return '';
+      return last.left>0
+        ? `<div class="note">${last.left} of ${p.bill.packageSessions} sessions still to go in ${last.label}. The amount falls due when the block finishes — collect any part of it before then if you prefer.</div>`
+        : `<div class="note warn">${last.label} is complete. The next visit opens a new ${money(p.bill.packagePrice)} package.</div>`;
+    })()}
+    <div class="between" style="margin-bottom:10px"><p class="sectitle" style="margin:0">Charges by visit</p></div>
+    <div class="card" style="margin-bottom:18px"><table>
+      <tr><th>Date</th><th>Session</th><th>Fee</th><th>Extras</th><th class="r">Total</th></tr>
+      ${vs.filter(v=>v.status==='Completed').reverse().map(v=>`<tr>
+        <td class="num">${fmtShort(v.date)}</td>
+        <td class="num">S${String(v.session).padStart(2,'0')}</td>
+        <td class="money">${p.bill.mode==='package'?'in package':money(v.fee)}</td>
+        <td class="muted" style="font-size:12.5px">${(v.extras||[]).map(x=>esc(x.label)+' '+money(x.amount)).join(', ')||'—'}</td>
+        <td class="r money">${money(p.bill.mode==='package'?extrasTotal(v):visitTotal(v))}</td>
+      </tr>`).join('')||'<tr><td colspan="5" class="muted">No completed visits to bill yet.</td></tr>'}
+    </table></div>
+    <div class="between" style="margin-bottom:10px">
+      <p class="sectitle" style="margin:0">Payments received</p>
+      <button class="btn teal sm" onclick="openPaymentForm('${p.id}')">Record payment</button>
+    </div>
+    <div class="card"><table>
+      <tr><th>Date</th><th>Mode</th><th class="r">Amount</th><th class="r"></th></tr>
+      ${pays.map(x=>`<tr>
+        <td class="num">${fmt(x.date)}</td>
+        <td>${esc(x.mode)}</td>
+        <td class="r money ok">${money(x.amount)}</td>
+        <td class="r"><button class="btn danger sm" onclick="delPay('${x.id}')">Remove</button></td>
+      </tr>`).join('')||'<tr><td colspan="4" class="muted">Nothing collected yet.</td></tr>'}
+    </table></div>`;
+}
+
+function renderBilling(){
+  const y = db.patients.reduce((s,p)=>s+paid(p.id),0);
+  $('#billSum').innerHTML = `
+    <div><div class="k">Due now</div><div class="v" style="color:var(--rose)">${money(totalDue())}</div><div class="s muted">closed bills, collectable today</div></div>
+    <div><div class="k">Accruing</div><div class="v">${money(totalAccruing())}</div><div class="s muted">inside open cycles</div></div>
+    <div><div class="k">Collected</div><div class="v" style="color:var(--teal)">${money(y)}</div><div class="s muted">all time</div></div>`;
+  const rows = [...db.patients].sort((a,c)=>dueNow(c.id)-dueNow(a.id) || accruing(c.id)-accruing(a.id));
+  $('#billTable').innerHTML = `
+    <tr><th>Patient</th><th>Plan</th><th>Sessions</th><th class="r">Due now</th><th class="r">Accruing</th><th class="r">Collected</th><th class="r">Action</th></tr>
+    ${rows.map(p=>{
+      const due=dueNow(p.id), acc=accruing(p.id), nd=nextDue(p.id);
+      return `<tr data-s="${esc((p.name+' '+p.condition+' '+p.mobile+' '+planShort(p)+' '+planLabel(p)+' '+p.status).toLowerCase())}">
+        <td><span class="pname" onclick="openPatient('${p.id}')">${esc(p.name)}</span><div class="cond truncate" style="max-width:230px">${esc(p.condition)}</div></td>
+        <td><span class="tag ${p.bill.mode==='per-visit'?'grey':''}">${esc(planShort(p))}</span></td>
+        <td>${tally(p.id)}</td>
+        <td class="r money ${due>0?'due':'ok'}">${due>0?money(due):advance(p.id)>0?`<span class="money ok">${money(advance(p.id))} credit</span>`:unstarted(p.id)?'<span class="muted">not billed</span>':'—'}</td>
+        <td class="r money">${acc>0?money(acc):'—'}<div class="cond">${nd?'bills '+fmtShort(nd):(acc>0?'on completion':'')}</div></td>
+        <td class="r money ok">${money(paid(p.id))}</td>
+        <td class="r"><button class="btn ${due>0?'teal':'ghost'} sm" onclick="openPaymentForm('${p.id}')">Record payment</button></td>
+      </tr>`;
+    }).join('')}
+    <tr id="billTable-none" style="display:none"><td colspan="7" class="nores">No patients match that search.</td></tr>`;
+}
+
+/* ============ modal engine ============ */
+let submitFn=null;
+function openModal(title,sub,html,okLabel,fn){
+  $('#mTitle').textContent=title; $('#mSub').textContent=sub||'';
+  $('#mBody').innerHTML=html;
+  $('#mFoot').innerHTML=`<button class="btn ghost" onclick="closeModal()">Cancel</button><button class="btn teal" onclick="submitModal()">${okLabel}</button>`;
+  submitFn=fn; $('#scrim').classList.add('on');
+  setTimeout(()=>$('#mBody').querySelector('input,select,textarea')?.focus(),40);
+}
+function closeModal(){ $('#scrim').classList.remove('on'); submitFn=null; }
+function submitModal(){ if(submitFn) submitFn(); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+const val = n => $('#mBody').querySelector(`[name="${n}"]`)?.value.trim() ?? '';
+const fld = (n,label,v='',type='text',ph='',full=false)=>`<div class="f ${full?'full':''}"><label for="f-${n}">${label}</label><input id="f-${n}" name="${n}" type="${type}" value="${esc(v)}" placeholder="${esc(ph)}"></div>`;
+const area = (n,label,v='',ph='',small=false)=>`<div class="f full"><label for="f-${n}">${label}</label><textarea id="f-${n}" name="${n}" placeholder="${esc(ph)}" ${small?'style="min-height:60px"':''}>${esc(v)}</textarea></div>`;
+
+/* ---- searchable dropdown ---- */
+const CB = {};
+function combo(name,label,value,options,o={}){
+  const list = options.map(x=> typeof x==='string' ? {v:x,l:x} : x);
+  CB[name] = {list, on:o.on||null};
+  const cur = list.find(x=>String(x.v)===String(value)) || list[0] || {v:'',l:''};
+  return `<div class="f ${o.full?'full':''}" ${o.id?`id="${o.id}"`:''}>
+    <label for="f-${name}">${label}</label>
+    <div class="combo" data-cb="${name}">
+      <input class="cbin" id="f-${name}" autocomplete="off" role="combobox" aria-expanded="false"
+        value="${esc(cur.l)}" placeholder="${esc(o.ph||'Type to search')}"
+        onfocus="cbOpen('${name}',true)" oninput="cbOpen('${name}')" onkeydown="cbKey(event,'${name}')" onblur="cbBlur('${name}')">
+      <input type="hidden" name="${name}" value="${esc(cur.v)}">
+      <div class="cblist"></div>
+    </div>
+    ${o.hint!==undefined?`<span class="hint" ${o.hintId?`id="${o.hintId}"`:''}>${o.hint}</span>`:''}
+  </div>`;
+}
+const sel = (n,label,v,opts,full=false)=>combo(n,label,v,opts,{full});
+const cbWrap = n => document.querySelector(`[data-cb="${n}"]`);
+function cbOpen(name,showAll){
+  const w=cbWrap(name); if(!w||!CB[name]) return;
+  const inp=w.querySelector('.cbin'), box=w.querySelector('.cblist'), hid=w.querySelector('input[type=hidden]');
+  const q = showAll ? '' : inp.value.toLowerCase().trim();
+  const items = CB[name].list.filter(x=>!q || x.l.toLowerCase().includes(q));
+  box.innerHTML = items.length
+    ? items.map(x=>`<button type="button" class="cbopt ${String(x.v)===String(hid.value)?'on':''}" data-v="${esc(x.v)}">${esc(x.l)}</button>`).join('')
+    : `<div class="cbnone">No match</div>`;
+  w.classList.add('open'); inp.setAttribute('aria-expanded','true');
+  if(showAll) inp.select();
+}
+function cbClose(name){ const w=cbWrap(name); if(!w) return; w.classList.remove('open'); w.querySelector('.cbin').setAttribute('aria-expanded','false'); }
+function cbSet(name,v){
+  const w=cbWrap(name); if(!w) return;
+  const item=CB[name].list.find(x=>String(x.v)===String(v)); if(!item) return;
+  w.querySelector('input[type=hidden]').value=item.v;
+  w.querySelector('.cbin').value=item.l;
+  cbClose(name); if(CB[name].on) CB[name].on();
+}
+function cbBlur(name){ setTimeout(()=>{
+  const w=cbWrap(name); if(!w) return;
+  const hid=w.querySelector('input[type=hidden]');
+  const item=CB[name].list.find(x=>String(x.v)===String(hid.value));
+  if(item) w.querySelector('.cbin').value=item.l;
+  cbClose(name);
+},120); }
+function cbKey(e,name){
+  const w=cbWrap(name); if(!w) return;
+  const opts=[...w.querySelectorAll('.cbopt')];
+  let i=opts.findIndex(o=>o.classList.contains('hi'));
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    e.preventDefault(); if(!w.classList.contains('open')) return cbOpen(name,true);
+    i = e.key==='ArrowDown' ? Math.min(opts.length-1,i+1) : Math.max(0,i-1);
+    opts.forEach(o=>o.classList.remove('hi')); if(opts[i]){ opts[i].classList.add('hi'); opts[i].scrollIntoView({block:'nearest'}); }
+  } else if(e.key==='Enter'){
+    e.preventDefault(); const pick=opts[i>-1?i:0]; if(pick) cbSet(name,pick.dataset.v);
+  } else if(e.key==='Escape'){ cbClose(name); }
+}
+document.addEventListener('mousedown',e=>{
+  const opt=e.target.closest?.('.cbopt');
+  if(opt){ e.preventDefault(); cbSet(opt.closest('[data-cb]').dataset.cb, opt.dataset.v); return; }
+  const w=e.target.closest?.('[data-cb]');
+  document.querySelectorAll('[data-cb].open').forEach(x=>{ if(x!==w) cbClose(x.dataset.cb); });
+});
+
+/* ---- inline list filtering (keeps focus, no re-render) ---- */
+function filterRows(id,q){
+  q=(q||'').toLowerCase().trim();
+  const rows=[...document.querySelectorAll(`#${id} tr[data-s]`)];
+  let n=0; rows.forEach(r=>{ const hit=!q||r.dataset.s.includes(q); r.style.display=hit?'':'none'; if(hit)n++; });
+  const none=document.querySelector(`#${id}-none`); if(none) none.style.display=n?'none':'';
+}
+function filterCards(id,q){
+  q=(q||'').toLowerCase().trim();
+  const cards=[...document.querySelectorAll(`#${id} [data-s]`)];
+  let n=0; cards.forEach(c=>{ const hit=!q||c.dataset.s.includes(q); c.style.display=hit?'':'none'; if(hit)n++; });
+  const none=document.querySelector(`#${id}-none`); if(none) none.style.display=n?'none':'';
+}
+
+/* ---- patient CRUD ---- */
+const MODES = {'per-visit':'Pays each visit','cycle':'Bills every few days','package':'Package of sessions'};
+function billModeChange(){
+  const B = $('#mBody');
+  const m = B.querySelector('[name="mode"]').value;
+  const show=(id,on)=>{ const el=B.querySelector(id); if(el) el.style.display = on?'flex':'none'; };
+  show('#cycleBox', m==='cycle');
+  show('#packBox',  m==='package');
+  show('#packBox2', m==='package');
+  show('#feeBox',   m!=='package');
+  const h={
+    'per-visit':'Charged at the end of every visit.',
+    'cycle':'Visits run on a tab. The bill closes and becomes collectable at the end of each cycle.',
+    'package':'A block of sessions billed as one amount. Collect it whenever suits — upfront, part way through, or when the block finishes.'
+  };
+  const hint=B.querySelector('#modeHint'); if(hint) hint.textContent=h[m];
+  packRate();
+}
+function packRate(){
+  const B=$('#mBody'), el=B.querySelector('#packRate'); if(!el) return;
+  const n=+B.querySelector('[name="packageSessions"]').value||0;
+  const pr=+B.querySelector('[name="packagePrice"]').value||0;
+  el.textContent = n&&pr ? `Works out to ${money(Math.round(pr/n))} a session` : 'Set sessions and price';
+}
+function openPatientForm(id){
+  const p = id?P(id):{name:'',mobile:'',address:'',condition:'',type:'',fee:600,status:'Active',start:TODAY,bill:{mode:'per-visit',cycleDays:7,packageSessions:10,packagePrice:5000}};
+  const b = Object.assign({mode:'per-visit',cycleDays:7,packageSessions:10,packagePrice:5000}, p.bill||{});
+  openModal(id?'Edit patient':'Add patient', id?'Update the record for '+p.name:'New intake — set how this patient pays, then build their plan.',
+    fld('name','Full name',p.name,'text','e.g. Meera Nair')
+    + fld('mobile','Mobile',p.mobile,'tel','98xxx xxxxx')
+    + fld('address','Address',p.address,'text','Flat, building, area',true)
+    + fld('condition','Condition / diagnosis',p.condition,'text','e.g. Adhesive capsulitis — right shoulder',true)
+    + area('type','Treatment type / approach',p.type,'e.g. Manual therapy, grade III GH mobilisation, progressive loading and a home exercise programme. Note any precautions here.')
+    + sel('status','Status',p.status,['Active','On hold','Discharged'],true)
+    + `<div class="planbox">`
+    + combo('mode','How this patient pays',b.mode,Object.entries(MODES).map(([v,l])=>({v,l})),{full:true,on:billModeChange,hint:'',hintId:'modeHint',ph:'Search plans'})
+    + `<div class="f" id="feeBox"><label for="f-fee">Fee per session (₹)</label>
+          <input id="f-fee" name="fee" type="number" value="${p.fee||''}" placeholder="600"></div>`
+    + combo('cycleDays','Close the bill every',b.cycleDays,[3,5,7,10,15,30].map(n=>({v:n,l:n+' days'})),{id:'cycleBox',ph:'Search'})
+    + `<div class="f" id="packBox"><label for="f-packageSessions">Sessions in the package</label>
+          <input id="f-packageSessions" name="packageSessions" type="number" value="${b.packageSessions}" oninput="packRate()"></div>
+        <div class="f" id="packBox2"><label for="f-packagePrice">Price for the package (₹)</label>
+          <input id="f-packagePrice" name="packagePrice" type="number" value="${b.packagePrice}" oninput="packRate()">
+          <span class="hint" id="packRate"></span></div>`
+    + (id?'':`
+        <div class="f full plansplit"><label style="letter-spacing:.1em">Payment taken today — optional</label>
+          <span class="hint">Leave blank if they haven't paid yet. Anything entered is held against their account and applied to the first bill.</span></div>
+        <div class="f"><label for="f-intake">Amount received (₹)</label>
+          <input id="f-intake" name="intake" type="number" placeholder="0"></div>`
+        + combo('intakeMode','Mode','UPI',['UPI','Cash','Card','Bank transfer']))
+    + `</div>`,
+    id?'Save changes':'Add patient',
+    ()=>{
+      const name=val('name'); if(!name){ toast('Enter the patient\u2019s name'); return; }
+      const mode=val('mode');
+      const bill={mode,cycleDays:+val('cycleDays')||7,packageSessions:+val('packageSessions')||10,packagePrice:+val('packagePrice')||0};
+      if(mode==='package' && !bill.packagePrice){ toast('Set a price for the package'); return; }
+      const data={name,mobile:val('mobile'),address:val('address'),condition:val('condition'),type:val('type'),
+        fee: mode==='package' ? 0 : (+val('fee')||0), status:val('status'), bill};
+      if(id){ Object.assign(P(id),data); toast('Patient updated'); }
+      else {
+        const np={id:uid(),start:TODAY,...data}; db.patients.push(np); curId=np.id;
+        const adv=+val('intake')||0;
+        if(adv>0){ db.payments.push({id:uid(),pid:np.id,date:TODAY,amount:adv,mode:val('intakeMode')||'Cash'});
+          toast('Patient added · '+money(adv)+' recorded'); }
+        else toast('Patient added');
+      }
+      closeModal(); renderAll(); if(!id) openPatient(curId);
+    });
+  billModeChange();
+}
+function delPatient(id){
+  const p=P(id);
+  openModal('Remove patient','This deletes '+p.name+'\u2019s plan, visits and payment records.',
+    `<p class="f full" style="margin:0">${visitsOf(id).length} visits and ${db.payments.filter(y=>y.pid===id).length} payments will be deleted. This cannot be undone.</p>`,
+    'Remove patient',()=>{
+      db.patients=db.patients.filter(x=>x.id!==id);
+      db.exercises=db.exercises.filter(x=>x.pid!==id);
+      db.visits=db.visits.filter(x=>x.pid!==id);
+      db.payments=db.payments.filter(x=>x.pid!==id);
+      closeModal(); curId=null; go('patients'); toast('Patient removed');
+    });
+}
+
+/* ---- exercise CRUD ---- */
+function openExForm(id){
+  const pt = P(curId); if(!pt){ toast('Open a patient first'); return; }
+  const e = id?db.exercises.find(x=>x.id===id):{name:'',sets:3,reps:10,hold:0,freq:'Once daily',note:''};
+  openModal(id?'Edit exercise':'Add exercise', pt.name+' · treatment plan',
+    fld('name','Exercise',e.name,'text','e.g. Wall crawl — flexion',true)
+    + fld('sets','Sets',e.sets,'number') + fld('reps','Reps',e.reps,'number')
+    + fld('hold','Hold (seconds)',e.hold,'number')
+    + sel('freq','Frequency',e.freq,['Once daily','Twice daily','Three times daily','Every alternate day','Every session'])
+    + area('note','Cue or note',e.note||'','e.g. Stop at stretch, not pain.'),
+    id?'Save exercise':'Add to plan',
+    ()=>{
+      const name=val('name'); if(!name){ toast('Name the exercise'); return; }
+      const data={name,sets:+val('sets')||1,reps:+val('reps')||1,hold:+val('hold')||0,freq:val('freq'),note:val('note')};
+      if(id) Object.assign(e,data); else db.exercises.push({id:uid(),pid:curId,active:true,...data});
+      closeModal(); renderAll(); toast(id?'Exercise updated':'Exercise added');
+    });
+}
+function toggleEx(id){ const e=db.exercises.find(x=>x.id===id); e.active=!e.active; renderAll(); toast(e.active?'Exercise resumed':'Exercise paused'); }
+function delEx(id){ db.exercises=db.exercises.filter(x=>x.id!==id); renderAll(); toast('Exercise removed'); }
+
+/* ---- visit CRUD ---- */
+let draftExtras=[];
+function extrasHTML(){
+  return `<div class="extras"><label style="font-family:'DM Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Extra charges</label>
+    <div id="exList" style="margin-top:9px">${draftExtras.map((x,i)=>`
+      <div class="exrow">
+        <input value="${esc(x.label)}" placeholder="e.g. Ultrasound therapy" oninput="draftExtras[${i}].label=this.value">
+        <input value="${x.amount}" type="number" placeholder="0" oninput="draftExtras[${i}].amount=+this.value;liveTotal()">
+        <button class="exdel" onclick="draftExtras.splice(${i},1);refreshExtras()" aria-label="Remove charge">×</button>
+      </div>`).join('')}</div>
+    <button class="btn ghost sm" onclick="draftExtras.push({label:'',amount:0});refreshExtras()">+ Add charge</button>
+    <div class="between" style="margin-top:11px;border-top:1px solid var(--line);padding-top:9px">
+      <span class="muted num" style="font-size:12px">Visit total</span>
+      <span class="num" id="liveTot" style="font-size:16px">₹0</span>
+    </div></div>`;
+}
+function refreshExtras(){ const w=$('#mBody').querySelector('.extras'); if(w){ w.outerHTML=extrasHTML(); liveTotal(); } }
+function liveTotal(){ const t=(+val('fee')||0)+draftExtras.reduce((s,x)=>s+(+x.amount||0),0); const el=$('#liveTot'); if(el) el.textContent=money(t); }
+
+function openVisitForm(id){
+  const v = id?db.visits.find(x=>x.id===id):null;
+  const pid = v?v.pid:(curId||db.patients[0]?.id);
+  if(!pid){ toast('Add a patient first'); return; }
+  const p = P(pid);
+  const nextSession = visitsOf(pid).length+1;
+  draftExtras = v ? (v.extras||[]).map(x=>({...x})) : [];
+  const names = db.patients.map(x=>x.name);
+  openModal(id?'Edit visit':'Log a visit', id?`${p.name} · session ${v.session}`:'Record what happened and what to charge.',
+    (id?`<div class="f full"><label>Patient</label><input value="${esc(p.name)}" disabled></div>`
+       : sel('pname','Patient',p.name,names,true))
+    + fld('date','Date',v?v.date:TODAY,'date') + fld('time','Time',v?v.time:'09:30','time')
+    + sel('status','Status',v?v.status:'Completed',['Completed','Scheduled','Missed'])
+    + fld('pain','Pain score (0–10)', v&&v.pain!=null?v.pain:'', 'number')
+    + area('note','Case notes', v?v.note:'', 'Findings, range of motion, what you did, how they responded.')
+    + (p.bill.mode==='package'
+        ? `<div class="f"><label>Session fee</label><input value="Covered by package" disabled></div><input type="hidden" name="fee" value="0">`
+        : fld('fee','Session fee (₹)', v?v.fee:p.fee, 'number'))
+    + `<div class="f"><label>Session no.</label><input value="${v?v.session:nextSession}" disabled></div>`
+    + extrasHTML(),
+    id?'Save visit':'Log visit',
+    ()=>{
+      const clean = draftExtras.filter(x=>x.label.trim()||x.amount);
+      const data={date:val('date')||TODAY,time:val('time')||'09:00',status:val('status'),
+        pain: val('pain')===''?null:Math.max(0,Math.min(10,+val('pain'))),
+        note:val('note'), fee:+val('fee')||0, extras:clean};
+      if(id) Object.assign(v,data);
+      else{
+        const target = db.patients.find(x=>x.name===val('pname')) || p;
+        db.visits.push({id:uid(),pid:target.id,session:visitsOf(target.id).length+1,...data});
+        curId=target.id;
+      }
+      closeModal(); renderAll(); toast(id?'Visit saved':'Visit logged');
+    });
+  setTimeout(liveTotal,50);
+  setTimeout(()=>{ $('#mBody').querySelector('[name="fee"]')?.addEventListener('input',liveTotal); },60);
+}
+function delVisit(id){ db.visits=db.visits.filter(x=>x.id!==id); renderAll(); toast('Visit removed'); }
+
+/* ---- payment CRUD ---- */
+function openPaymentForm(pid,suggest){
+  const p = pid?P(pid):P(curId)||db.patients[0];
+  if(!p){ toast('Add a patient first'); return; }
+  const due = dueNow(p.id), acc = accruing(p.id), nd = nextDue(p.id);
+  const sub = due>0 ? `${p.name} · ${money(due)} due now on a ${planLabel(p).toLowerCase()} plan`
+    : acc>0 ? `${p.name} · nothing due yet, ${money(acc)} accruing until ${fmt(nd)}`
+    : `${p.name} · account settled`;
+  openModal('Record payment', sub,
+    sel('pname','Patient',p.name,db.patients.map(x=>x.name),true)
+    + fld('amount','Amount (₹)', suggest||due||'', 'number')
+    + fld('date','Date',TODAY,'date')
+    + sel('mode','Mode','UPI',['UPI','Cash','Card','Bank transfer'],true)
+    + `<div class="f full"><span class="hint">Applied to the oldest unpaid bill period first. Anything extra is held as advance.</span></div>`,
+    'Record payment',
+    ()=>{
+      const amt=+val('amount'); if(!amt){ toast('Enter an amount'); return; }
+      const target=db.patients.find(x=>x.name===val('pname'))||p;
+      db.payments.push({id:uid(),pid:target.id,date:val('date')||TODAY,amount:amt,mode:val('mode')});
+      closeModal(); renderAll(); toast(money(amt)+' recorded');
+    });
+}
+function delPay(id){ db.payments=db.payments.filter(x=>x.id!==id); renderAll(); toast('Payment removed'); }
+
+/* ============ storage: IndexedDB is the source of truth ============ */
+const DB_NAME='physiodesk', STORE='kv', SCHEMA=1;
+const IDB=(()=>{
+  let conn;
+  const open=()=>conn||(conn=new Promise((res,rej)=>{
+    const r=indexedDB.open(DB_NAME,SCHEMA);
+    r.onupgradeneeded=()=>{ if(!r.result.objectStoreNames.contains(STORE)) r.result.createObjectStore(STORE); };
+    r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error);
+  }));
+  const tx=(mode,fn)=>open().then(d=>new Promise((res,rej)=>{
+    const t=d.transaction(STORE,mode), q=fn(t.objectStore(STORE));
+    t.oncomplete=()=>res(q?q.result:undefined); t.onerror=()=>rej(t.error); t.onabort=()=>rej(t.error);
+  }));
+  return {
+    get:k=>tx('readonly',s=>s.get(k)),
+    set:(k,v)=>tx('readwrite',s=>s.put(v,k)),
+    del:k=>tx('readwrite',s=>s.delete(k)),
+    keys:()=>tx('readonly',s=>s.getAllKeys())
+  };
+})();
+
+let ready=false, lastSaved=null, saveTimer=null, cloudTimer=null;
+let meta={ savedAt:null, cloudAt:null, backupAt:null };
+
+const snapshot=()=>({version:SCHEMA,updatedAt:new Date().toISOString(),
+  patients:db.patients,exercises:db.exercises,visits:db.visits,payments:db.payments});
+
+/* called at the end of every render — writes only when something actually changed */
+function autoSave(){
+  if(!ready) return;
+  const s=JSON.stringify({p:db.patients,e:db.exercises,v:db.visits,y:db.payments});
+  if(s===lastSaved) return;
+  lastSaved=s;
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(persist,250);
+}
+async function persist(){
+  const snap=snapshot();
+  try{
+    await IDB.set('state',snap);
+    meta.savedAt=snap.updatedAt;
+    await dailyBackup(snap);
+    setSaveState('Saved on this device');
+    queueCloud();
+  }catch(err){
+    console.error(err);
+    setSaveState('Could not save — see Backup & sync','bad');
+  }
+  if(view==='settings') renderSettings();
+}
+/* keep the last 14 daily snapshots locally, so a bad edit is always recoverable */
+async function dailyBackup(snap){
+  const today=snap.updatedAt.slice(0,10);
+  if(meta.backupAt===today) return;
+  await IDB.set('backup:'+today,snap);
+  meta.backupAt=today;
+  const keys=(await IDB.keys()).filter(k=>String(k).startsWith('backup:')).sort();
+  for(const k of keys.slice(0,Math.max(0,keys.length-14))) await IDB.del(k);
+}
+function setSaveState(txt,bad){
+  const el=$('#saveState'); if(!el) return;
+  el.textContent=txt; el.style.color=bad?'#F09AB0':'';
+}
+
+/* ============ optional cloud mirror (Firebase, free tier) ============ */
+/* One document holds the whole practice. Single user means no merge conflicts:
+   whichever copy has the newer updatedAt wins. */
+const CLOUD_KEY='physiodesk.firebase';
+let cloud={cfg:null,email:null,app:null,dbf:null,uid:null,state:'off'};
+
+function cloudConfig(){ try{ return JSON.parse(localStorage.getItem(CLOUD_KEY)||'null'); }catch{ return null; } }
+function setCloudChip(){
+  const chip=$('#n-sync'); if(!chip) return;
+  chip.textContent = cloud.state==='on'?'✓' : cloud.state==='error'?'!' : cloud.state==='syncing'?'…' : '·';
+}
+async function cloudInit(silent){
+  const cfg=cloudConfig();
+  if(!cfg||!cfg.apiKey){ cloud.state='off'; setCloudChip(); return; }
+  try{
+    cloud.state='syncing'; setCloudChip();
+    const [{initializeApp},{getAuth,signInWithEmailAndPassword},{getFirestore,doc,getDoc,setDoc}] = await Promise.all([
+      import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js'),
+      import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js')
+    ]);
+    cloud.app=initializeApp(cfg);
+    const auth=getAuth(cloud.app);
+    const cred=await signInWithEmailAndPassword(auth,cfg.email,cfg.password);
+    cloud.uid=cred.user.uid; cloud.email=cfg.email;
+    cloud.dbf=getFirestore(cloud.app);
+    cloud._doc=()=>doc(cloud.dbf,'practices',cloud.uid);
+    cloud._get=getDoc; cloud._set=setDoc;
+    cloud.state='on'; setCloudChip();
+    return true;
+  }catch(err){
+    console.error(err); cloud.state='error'; cloud.err=err.message; setCloudChip();
+    if(!silent) toast('Sync failed — check the details in Backup & sync');
+    return false;
+  }
+}
+function queueCloud(){
+  if(cloud.state!=='on') return;
+  clearTimeout(cloudTimer);
+  cloudTimer=setTimeout(cloudPush,4000);   // debounce: one write per burst of edits
+}
+async function cloudPush(){
+  if(cloud.state!=='on') return;
+  try{
+    const snap=snapshot();
+    await cloud._set(cloud._doc(),{payload:JSON.stringify(snap),updatedAt:snap.updatedAt});
+    meta.cloudAt=snap.updatedAt;
+    if(view==='settings') renderSettings();
+  }catch(err){ console.error(err); cloud.state='error'; setCloudChip(); }
+}
+async function cloudPull(){
+  if(cloud.state!=='on') return null;
+  const d=await cloud._get(cloud._doc());
+  if(!d.exists()) return null;
+  try{ return JSON.parse(d.data().payload); }catch{ return null; }
+}
+
+/* ============ export / import ============ */
+function exportBackup(){
+  const snap=snapshot();
+  const blob=new Blob([JSON.stringify(snap,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`physiodesk-backup-${TODAY}.json`;
+  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  toast('Backup downloaded');
+}
+function importBackup(){ $('#importFile').click(); }
+document.getElementById('importFile').addEventListener('change',async e=>{
+  const file=e.target.files[0]; if(!file) return;
+  e.target.value='';
+  try{
+    const data=JSON.parse(await file.text());
+    if(!data.patients) throw new Error('not a PhysioDesk backup');
+    const counts=`${data.patients.length} patients, ${(data.visits||[]).length} visits`;
+    openModal('Restore from backup',`This replaces everything currently in the app.`,
+      `<p class="f full" style="margin:0">The file holds ${counts}. Your current data will be overwritten — export it first if you want to keep it.</p>`,
+      'Replace everything',()=>{
+        db={patients:data.patients||[],exercises:data.exercises||[],visits:data.visits||[],payments:data.payments||[]};
+        closeModal(); renderAll(); toast('Backup restored');
+      });
+  }catch(err){ toast('That file could not be read'); }
+});
+
+/* ============ boot ============ */
+async function boot(){
+  let local=null;
+  try{ local=await IDB.get('state'); }catch(err){ console.error(err); }
+
+  await cloudInit(true);
+  let remote=null;
+  if(cloud.state==='on'){ try{ remote=await cloudPull(); }catch(err){ console.error(err); } }
+
+  let use=local;
+  if(remote && (!local || remote.updatedAt > local.updatedAt)) use=remote;
+
+  if(use){
+    db={patients:use.patients||[],exercises:use.exercises||[],visits:use.visits||[],payments:use.payments||[]};
+    meta.savedAt=local?local.updatedAt:null;
+    meta.cloudAt=remote?remote.updatedAt:null;
+  }
+  ready=true;
+  lastSaved=JSON.stringify({p:db.patients,e:db.exercises,v:db.visits,y:db.payments});
+  renderAll();
+  if(use===remote && remote) { await IDB.set('state',remote); toast('Synced from cloud'); }
+
+
+  window.addEventListener('online',()=>{ offlineBar(); if(cloud.state==='error') cloudInit(true).then(queueCloud); else queueCloud(); });
+  window.addEventListener('offline',offlineBar);
+  offlineBar();
+  /* flush pending writes before the tab closes */
+  window.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='hidden'){ clearTimeout(saveTimer); persist(); } });
+}
+function offlineBar(){ document.getElementById('offlineBar').classList.toggle('on', !navigator.onLine); }
+
+/* ============ settings screen ============ */
+function renderSettings(){
+  const cfg=cloudConfig();
+  const counts=`${db.patients.length} patients · ${db.visits.length} visits · ${db.payments.length} payments · ${db.exercises.length} exercises`;
+  const when=t=>t?new Date(t).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}):'never';
+  const status={on:['Connected','tag'],off:['Not set up','tag grey'],error:['Connection failed','tag rose'],syncing:['Connecting…','tag amber']}[cloud.state];
+  $('#settingsBody').innerHTML=`
+    <div class="card pad" style="margin-bottom:14px">
+      <p class="sectitle">On this device</p>
+      <div class="between" style="flex-wrap:wrap;gap:12px">
+        <div><div class="num" style="font-size:15px">${counts}</div>
+          <div class="cond">Last saved ${when(meta.savedAt)} · daily snapshots kept for 14 days</div></div>
+        <div class="row">
+          <button class="btn ghost sm" onclick="exportBackup()">Export backup</button>
+          <button class="btn ghost sm" onclick="importBackup()">Restore from file</button>
+        </div>
+      </div>
+      <div class="note" style="margin:14px 0 0">Everything is written to this device's storage the moment you change it, and it works with no internet. Export a copy now and then — that file is the one thing no browser can delete.</div>
+    </div>
+
+    <div class="card pad" style="margin-bottom:14px">
+      <div class="between" style="margin-bottom:4px">
+        <p class="sectitle" style="margin:0">Cloud backup</p>
+        <span class="${status[1]}">${status[0]}</span>
+      </div>
+      <p class="cond" style="margin:0 0 12px">Optional. Mirrors everything to a private Firebase document on the free tier, so a lost or wiped phone doesn't lose the practice. Last pushed ${when(meta.cloudAt)}.</p>
+      ${cloud.state==='error'?`<div class="note warn" style="margin:0 0 12px">${esc(cloud.err||'Could not connect.')}</div>`:''}
+      <div class="row" style="flex-wrap:wrap">
+        <button class="btn ${cfg?'ghost':'teal'} sm" onclick="openCloudForm()">${cfg?'Edit connection':'Set up cloud backup'}</button>
+        ${cloud.state==='on'?`<button class="btn ghost sm" onclick="cloudPush().then(()=>toast('Pushed to cloud'))">Push now</button>
+        <button class="btn ghost sm" onclick="restoreFromCloud()">Pull from cloud</button>`:''}
+        ${cfg?`<button class="btn danger sm" onclick="disconnectCloud()">Disconnect</button>`:''}
+      </div>
+    </div>
+
+    <div class="card pad">
+      <p class="sectitle">Danger zone</p>
+      <div class="row" style="flex-wrap:wrap">
+        <button class="btn ghost sm" onclick="loadSample()">Load sample data</button>
+        <button class="btn danger sm" onclick="wipeAll()">Erase everything</button>
+      </div>
+    </div>`;
+}
+function openCloudForm(){
+  const cfg=cloudConfig()||{};
+  openModal('Cloud backup','Paste the config from your Firebase project. Setup steps are in DEPLOY.md — it takes about ten minutes, once.',
+    fld('apiKey','API key',cfg.apiKey||'','text','AIza…',true)
+    + fld('authDomain','Auth domain',cfg.authDomain||'','text','my-app.firebaseapp.com',true)
+    + fld('projectId','Project ID',cfg.projectId||'','text','my-app',true)
+    + fld('appId','App ID',cfg.appId||'','text','1:123…:web:abc',true)
+    + fld('cemail','Sign-in email',cfg.email||'','email','you@example.com')
+    + fld('cpassword','Password',cfg.password||'','password','')
+    ,'Connect',async ()=>{
+      const cfg2={apiKey:val('apiKey'),authDomain:val('authDomain'),projectId:val('projectId'),appId:val('appId'),
+        email:val('cemail'),password:val('cpassword')};
+      if(!cfg2.apiKey||!cfg2.email){ toast('API key and email are needed'); return; }
+      localStorage.setItem(CLOUD_KEY,JSON.stringify(cfg2));
+      closeModal();
+      const ok=await cloudInit();
+      renderSettings();
+      if(ok){ await cloudPush(); toast('Cloud backup connected'); }
+    });
+}
+function disconnectCloud(){
+  openModal('Disconnect cloud backup','The copy already in the cloud stays there. This device stops pushing to it.',
+    `<p class="f full" style="margin:0">Your data on this device is untouched.</p>`,'Disconnect',()=>{
+      localStorage.removeItem(CLOUD_KEY); cloud={cfg:null,state:'off'}; setCloudChip();
+      closeModal(); renderSettings(); toast('Disconnected');
+    });
+}
+async function restoreFromCloud(){
+  const remote=await cloudPull();
+  if(!remote){ toast('Nothing in the cloud yet'); return; }
+  openModal('Pull from cloud',`Cloud copy saved ${new Date(remote.updatedAt).toLocaleString('en-IN')}.`,
+    `<p class="f full" style="margin:0">This replaces what is on this device with ${remote.patients.length} patients and ${(remote.visits||[]).length} visits from the cloud.</p>`,
+    'Replace this device',()=>{
+      db={patients:remote.patients||[],exercises:remote.exercises||[],visits:remote.visits||[],payments:remote.payments||[]};
+      closeModal(); renderAll(); toast('Pulled from cloud');
+    });
+}
+function loadSample(){
+  openModal('Load sample data','Five example patients across all three billing plans, for trying things out.',
+    `<p class="f full" style="margin:0">This replaces anything currently in the app.</p>`,'Load sample data',()=>{
+      db=sampleData(); closeModal(); go('today'); toast('Sample data loaded');
+    });
+}
+function wipeAll(){
+  openModal('Erase everything','This cannot be undone.',
+    `<p class="f full" style="margin:0">All patients, treatment plans, visits and payments will be deleted from this device. Export a backup first if there is any chance you will want it.</p>`,
+    'Erase everything',()=>{ db=emptyDB(); closeModal(); renderAll(); toast('Everything erased'); });
+}
+
+/* ============ service worker ============ */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW',e)));
+}
+
+/* Small debug handle — useful when inspecting the app on a real phone. */
+window.PD = {
+  get db(){ return db; }, set db(v){ db=v; },
+  go, renderAll, openPatient, openPatientForm, openVisitForm, openPaymentForm, openExForm,
+  bills, dueNow, accruing, advance, unstarted, sampleData, exportBackup, cloudPush, cloudPull, IDB
+};
+
+boot();
+</script>
+</body>
+</html>
